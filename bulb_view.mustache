@@ -1,0 +1,27 @@
+{{!
+Energy Label For Bulbs
+
+@author    Alex Koziak <akoziak@wayfair.com>
+@copyright 2016 Wayfair LLC - All rights reserved
+}}
+<div class="EnergyLabel">
+  <div class="EnergyLabel-bulb-header">
+    <div class="EnergyLabel-image-bulbHeader">
+      <span class="EnergyLabel-image-accessibilityText">
+        {{#_t}}{"key": "EnergyLabelBulbHeader", "default": "Energy Translations and EU Flag"}{{/_t}}
+      </span>
+    </div>
+  </div>
+  {{#manufacturer_short_name}}
+    {{> stores/product/energy_labels/partials/energy_label_manufacturing_info }}
+  {{/manufacturer_short_name}}
+  <div class="EnergyLabel-arrowWrap">
+    <span class="EnergyLabel-arrow right pos_{{energy_efficiency_class_position}}" role="presentation">{{energy_efficiency_class}}</span>
+    {{> stores/product/energy_labels/partials/energy_arrow_scale}}
+  </div>
+  {{#bulb_wattage}}
+    <div class="EnergyLabel-bulb-wattage">
+      <span class="EnergyLabel-bulb-wattage-value">{{bulb_wattage}}</span> kWh/1000h
+    </div>
+  {{/bulb_wattage}}
+</div>

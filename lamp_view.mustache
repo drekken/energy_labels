@@ -1,0 +1,99 @@
+{{!
+Energy Label For Lamps
+
+@author    Alex Koziak <akoziak@wayfair.com>
+@copyright 2016 Wayfair LLC - All rights reserved
+}}
+<div class="EnergyLabel">
+  {{> stores/product/energy_labels/partials/energy_label_manufacturing_info }}
+  <div class="EnergyLabel-lampCompatibility">
+    <div class="EnergyLabel-image-lightTypeIcon EnergyLabel-image-lightTypeIcon--{{light_type_icon}}">
+      <span class="EnergyLabel-image-accessibilityText">
+        {{{lnrs_light_title_text}}}
+      </span>
+    </div>
+    <p class="EnergyLabel-lampCompatibility-text">
+      {{#is_led_integrated}}
+        {{#fixture_range_minimum_position}}
+          {{#_t}}
+            {"key": "EnergyLabelLedRangeText", "default": "This luminaire contains built-in LED lamps and has sockets for bulbs of the energy classes:"}
+          {{/_t}}
+        {{/fixture_range_minimum_position}}
+        {{^fixture_range_minimum_position}}
+           {{#_t}}
+             {"key": "EnergyLabelLedBuiltInText", "default": "This luminaire contains built-in LED lamps."}
+           {{/_t}}
+        {{/fixture_range_minimum_position}}
+      {{/is_led_integrated}}
+      {{^is_led_integrated}}
+        {{#_t}}
+          {"key": "EnergyLabelLampCompatibility", "default": "This luminaire is compatible with bulbs of the energy classes:"}
+        {{/_t}}
+      {{/is_led_integrated}}
+    </p>
+  </div>
+  <div class="EnergyLabel-arrowWrap">
+    {{> stores/product/energy_labels/partials/energy_arrow_scale}}
+
+    {{! The following ranges dictate brackets that represent what energy efficiency range
+        compatible bulbs can fit into. The range dictates how big the bracket is. The position
+        is where the bracket is positioned vertically. }}
+    {{! For the `pos_` and `range_` classes, use an integer after the underscore.
+        `pos_` dictates what position the class starts at. "1" places it at A++. "4" at B, etc..
+        `range_` dictates how tall the object will be. "1" means it's the height of one letter. "4" is four letters. etc...
+        `EnergyLabel-x` creates an "X" over the specified letters. `pos_1 range_1` will cover A++. `pos_4 range_3` will cover B-D.
+        `EnergyLabel-luminaireRangeBracket bulb` creates a curly brace with a bulb icon.
+        `EnergyLabel-luminaireRangeBracket led` creates a curly brace with the letters "LED" vertically next to the brace }}
+
+    {{#minimum_excluded_range_start_position}}
+      <span class="EnergyLabel-x pos_{{minimum_excluded_range_start_position}} range_{{minimum_excluded_range_size}}" role="presentation"></span>
+    {{/minimum_excluded_range_start_position}}
+
+    {{#maximum_excluded_range_start_position}}
+      <span class="EnergyLabel-x pos_{{maximum_excluded_range_start_position}} range_{{maximum_excluded_range_size}}" role="presentation"></span>
+    {{/maximum_excluded_range_start_position}}
+
+    {{#led_range_maximum_position}}
+      <div class="EnergyLabel-luminaireRangeBracket pos_{{led_range_maximum_position}} range_{{led_range_size}} led" role="presentation">
+        <img src="{{bracket_img_url}}"
+             class="EnergyLabel-luminaireRangeBracket-image"
+             alt='{{#_t}}{"key": "EnergyLabelBracketAlt", "default": "Range Bracket"}{{/_t}}'
+             title='{{#_t}}{"key": "EnergyLabelBracketAlt", "default": "Range Indicator Bracket"}{{/_t}}' />
+      </div>
+    {{/led_range_maximum_position}}
+
+    {{#fixture_range_maximum_position}}
+      <div class="EnergyLabel-luminaireRangeBracket pos_{{fixture_range_maximum_position}} range_{{fixture_range_size}} bulb" role="presentation">
+        <img src="{{bracket_img_url}}"
+             class="EnergyLabel-luminaireRangeBracket-image"
+             alt='{{#_t}}{"key": "EnergyLabelBracketAlt", "default": "Range Bracket"}{{/_t}}'
+             title='{{#_t}}{"key": "EnergyLabelBracketAlt", "default": "Range Indicator Bracket"}{{/_t}}' />
+      </div>
+    {{/fixture_range_maximum_position}}
+  </div>
+  {{#bulb_included}}
+    <div class="EnergyLabel-bulb-included">
+      {{#energy_efficiency_class}}
+        {{#_t}}
+          {"key": "EnergyLabelBulbIncluded", "default": "The luminaire is sold with a bulb of the energy class:"}
+        {{/_t}}
+        <span class="EnergyLabel-arrow left short inline pos_{{energy_efficiency_class_position}}" role="presentation">{{energy_efficiency_class}}</span>
+      {{/energy_efficiency_class}}
+      {{^energy_efficiency_class}}
+        {{#is_led_integrated}}
+           {{#_t}}
+             {"key": "EnergyLabelLedLampCannotBeChanged", "default": "The lamps cannot be changed in the luminaire."}
+           {{/_t}}
+        {{/is_led_integrated}}
+      {{/energy_efficiency_class}}
+    </div>
+  {{/bulb_included}}
+  <div class="EnergyLabel-lawBlock">
+    874/2012
+    <div class="EnergyLabel-image-euFlag">
+      <span class="EnergyLabel-image-accessibilityText">
+        {{#_t}}{"key": "EnergyLabelEUFlag", "default": "EU Flag"}{{/_t}}
+      </span>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,334 @@
+////
+/// EU Energy Label Generator
+/// Colors and font-sizes used are unique to the standards of the label
+/// This component assumes use of a browser reset file and the labels are 250px wide
+///
+/// @author    Alex Koziak <akoziak@wayfair.com>
+/// @copyright 2016 Wayfair LLC - All rights reserved
+////
+
+/// @section Hard Reset
+html {
+  box-sizing: border-box;
+}
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
+/// @section Variables
+// Use pixel (px) units for the variables below
+$el-arrowHeight:            20px; // even number encouraged
+$el-baseArrowWidth:         34px;
+$el-arrowWidthIncrement:    8px;
+$el-arrowBottomMargin:      6px;
+$el-leftArrowTextAlignment: left;
+$el-arrowFontSize:          16px; // works well with 20px arrow-height. letters will center in the arrow
+
+/// @section Colors
+// Arrow color variables given by which arrow due to the lables of the arrows varying by rating system
+$energy_label_colors: (
+  // If you use more than 7 arrows, you'll need more arrow_# specifications
+  arrow_1:     #00a651, // Green
+  arrow_2:     #4db848, // Light Green
+  arrow_3:     #bEd62f, // Lime Green
+  arrow_4:     #fff200, // Yellow
+  arrow_5:     #fdb813, // Light Orange
+  arrow_6:     #f36f21, // Dark Orange
+  arrow_7:     #ed1c24, // Red
+
+  errorRed:    #b7272f, // Dark Red
+  lightBlue:   #00a4d8, // Light Blue
+
+  arrow_right: #000, // Black
+);
+
+/// @section Functions
+// These are used to calculate widths and position rather than relying on calc() (non browser-compatible)
+
+// Based on the iteration of pos_#, the arrows get longer
+@function el-calculateLeftArrowWidth($el-baseWidth, $iteration) {
+  @return ($el-baseWidth + ($el-arrowWidthIncrement * $iteration));
+}
+
+// Does the reverse of the top one. Arrow starts longer and gets shorter
+@function el-calculateRightArrowWidth($el-baseWidth, $iteration) {
+  @return $el-baseWidth + ($el-arrowWidthIncrement * (7 - ($iteration - 1)));
+}
+
+/// @section Mixins
+@mixin el-arrow_triangle($direction, $width, $height, $color, $inverse_color: transparent) {
+  width: 0;
+  height: 0;
+  border-style: solid;
+
+  @if ($direction == 'right') {
+    border-width: ($height / 2) 0 ($height / 2) $width;
+    border-color: $inverse_color $inverse_color $inverse_color $color;
+  } @else {
+    border-width: ($height / 2) $width ($height / 2) 0;
+    border-color: $inverse_color $color $inverse_color $inverse_color;
+  }
+  -moz-border-#{$direction}-colors: $inverse_color; // smooths jagged edges in Firefox
+}
+
+%el-clearfix {
+  &:after {
+    content: '';
+    display: table;
+    clear: both;
+  }
+}
+
+/// @section Base Styles
+.EnergyLabel {
+  @extend %el-clearfix;
+  border: 4px solid map-get($energy_label_colors, lightBlue);
+  border-radius: 7px;
+  float: left;
+  margin: 10px;
+  min-height: 250px;
+  padding: 7px;
+  text-align: left; // makes sure that the text is always left
+  width: 250px;
+  &-wrapper {
+    @extend %el-clearfix;
+  }
+  &-arrowWrap {
+    // accounts for all items inside it being absolutely positioned
+    height: ($el-arrowHeight + $el-arrowBottomMargin) * 7;
+    // since the arrows have the translateY, this gives the block space above it
+    margin-top: 5px + $el-arrowHeight;
+    position: relative;
+  }
+  &-arrow,
+  &-x,
+  &-luminaireRangeBracket {
+    &[class*='pos_'] {
+      box-sizing: border-box;
+      display: block; // for psudo elements
+      padding-left: 10px;
+      position: absolute;
+      &:after {
+        content: '';
+        position: absolute;
+      }
+    }
+    @for $i from 1 through 7 {
+      &.pos_#{$i} {
+        // the -1 accounts for the first item (so it doesn't add margin to the first pos)
+        top: ($el-arrowHeight * ($i - 1)) + (($i - 1) * $el-arrowBottomMargin);
+      }
+    }
+  }
+  &-arrow {
+    font-size: $el-arrowFontSize;
+    &[class*='pos_'] {
+      color: #fff;
+      height: $el-arrowHeight;
+      line-height: $el-arrowHeight;
+      text-align: $el-leftArrowTextAlignment;
+      text-shadow: #000 0 0 5px;
+      transform: translateY(-50%);
+      &.right {
+        background-color: map-get($energy_label_colors, arrow_right);
+        font-size: $el-arrowFontSize * 1.5;
+        height: $el-arrowHeight * 1.5;
+        line-height: $el-arrowHeight * 1.5;
+        right: 0;
+        &:after {
+          @include el-arrow_triangle('left', (($el-arrowHeight * 1.5) / 2), $el-arrowHeight * 1.5, map-get($energy_label_colors, arrow_right));
+          left: -(($el-arrowHeight * 1.5) / 2);
+        }
+      }
+    }
+    @for $i from 1 through 7 {
+      &.pos_#{$i} {
+        &.left {
+          background-color: map-get($energy_label_colors, arrow_#{$i});
+          width: el-calculateLeftArrowWidth($el-baseArrowWidth, $i);
+          &:after {
+            @include el-arrow_triangle('right', ($el-arrowHeight * 0.5), $el-arrowHeight, map-get($energy_label_colors, arrow_#{$i}));
+            right: -($el-arrowHeight / 2);
+          }
+        }
+        &.right {
+          width: el-calculateRightArrowWidth($el-baseArrowWidth, $i);
+        }
+      }
+    }
+    &.inline {
+      display: inline-block;
+      transform: translateY(0); // resets the object to be inline with the page
+    }
+    &.short.left {
+      position: relative; // overrides base arrow property
+      text-align: left; // arrows can be text right or left, based on settings. This forces small instances to be left
+      top: 0;
+      width: 50px;
+    }
+  }
+  &-x {
+    z-index: 2; // places the x above the arrow. They are positioned in the same place
+    &[class*='range_'] {
+      &:before,
+      &:after {
+        background: map-get($energy_label_colors, errorRed);
+        content: '';
+        position: absolute;
+      }
+      &:before {
+        transform: rotate(-30deg);
+      }
+      &:after {
+        transform: rotate(30deg);
+      }
+    }
+    @for $i from 1 through 7 {
+      &.range_#{$i} {
+        &:before,
+        &:after {
+          height: ($el-arrowHeight * $i) + ($el-arrowBottomMargin * (2 * ($i - 1)));
+          left: 10px * $i;
+          top: -($el-arrowHeight / 2) - (3 * ($i - 1));
+          width: 3px + $i;
+        }
+      }
+    }
+  }
+  &-luminaireRangeBracket {
+    &.bulb:after,
+    &.led:after {
+      content: '';
+      background: url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/499669/EL-label-sprite.png') no-repeat center;
+    }
+    &.bulb:after {
+      background-position: -280px -85px;
+      min-height: 36px;
+      width: 36px;
+    }
+    &.led:after {
+      background-position: -318px -85px;
+      min-height: 72px;
+      width: 18px;
+    }
+    @for $i from 1 through 7 {
+      &.pos_#{$i} {
+        // different from the regular pos_# top to account for the arrows being translated
+        top: (($el-arrowHeight + $el-arrowBottomMargin) * ($i - 1)) - ($el-arrowHeight / 2);
+      }
+      &.range_#{$i} {
+        .EnergyLabel-luminaireRangeBracket-image {
+          height: ($el-arrowHeight * $i) + ($el-arrowBottomMargin * ($i - 1));
+        }
+        &.bulb {
+          right: 75px - ($i * 5);
+        }
+        &.led {
+          right: 125px - ($i * 5);
+        }
+        &.bulb:after,
+        &.led:after {
+          left: 24px + (7 * ($i - 2));
+          top: 50%;
+          transform: translateY(-50%);
+        }
+      }
+    }
+  }
+  &-manufacturingInfo {
+    @extend %el-clearfix;
+    border-bottom: 2px solid map-get($energy_label_colors, lightBlue);
+    padding-bottom: 10px;
+  }
+  &-partNumber {
+    float: right;
+    text-align: right;
+  }
+  &-bulb {
+    &-header {
+      @extend %el-clearfix;
+      margin-bottom: 10px;
+    }
+    &-wattage,
+    &-included {
+      border-top: 2px solid map-get($energy_label_colors, lightBlue);
+    }
+    &-wattage {
+      font-size: 16px;
+      padding: 10px 0 3px;
+      text-align: center;
+      &-value {
+        font-size: 22px;
+        font-weight: bold;
+      }
+    }
+  }
+  &-bulb-included,
+  &-lawBlock,
+  &-lampCompatibility {
+    padding: 10px 0;
+  }
+  &-lawBlock {
+    font-size: 14px;
+    font-weight: bold;
+  }
+  &-lampCompatibility {
+    display: table;
+    &-lampIcon,
+    &-text {
+      display: table-cell;
+      vertical-align: middle;
+    }
+    &-lampIcon {
+      width: 80px;
+    }
+    &-text {
+      padding-left: 6px;
+    }
+  }
+  &-image {
+    position: relative;
+    &-bulbHeader,
+    &-euFlag,
+    &-lightTypeIcon {
+      background: url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/499669/EL-label-sprite.png') no-repeat center;
+    }
+    &-accessibilityText {
+      position: absolute;
+      left: -10000px;
+      top: auto;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      z-index: 10000;
+    }
+    &-bulbHeader {
+      background-position: 0 -85px;
+      height: 45px;
+      width: 228px;
+    }
+    &-euFlag {
+      background-position: -230px -85px;
+      float: right;
+      height: 33px;
+      transform: translateY(-25%); // vertically centers the flag image
+      width: 50px;
+    }
+    &-lightTypeIcon {
+      height: 80px;
+      width: 80px;
+      &--ceiling {
+        background-position: -81px 0;
+      }
+      &--fan {
+        background-position: -324px 0;
+      }
+      &--wall {
+        background-position: -162px 0;
+      }
+      &--lamp {
+        background-position: -243px 0;
+      }
+    }
+  }
+}
